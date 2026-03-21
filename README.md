@@ -12,7 +12,9 @@ Specialized	Lucas-Lehmer	Deterministic test for Mersenne numbers
 Deterministic	AKS	Polynomial-time deterministic algorithm
 Advanced	APR-CL	Fast deterministic test using cyclotomy
 Advanced	Bernstein	Optimized implementation
+
 Features
+
 ✅ 8 Algorithms: Complete implementations of major primality tests
 
 📊 Comprehensive Benchmarking: Performance comparison across algorithms
