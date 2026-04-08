@@ -4,12 +4,21 @@ import pandas as pd
 import numpy as np
 import time
 import psutil
-import matplotlib
 import matplotlib.pyplot as plt
 from datetime import datetime
 import random
 import sys
 import os
+
+import matplotlib
+
+# 设置中文字体路径
+font_path = '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc'
+if os.path.exists(font_path):
+    matplotlib.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei']
+else:
+    matplotlib.rcParams['font.sans-serif'] = ['DejaVu Sans']
+matplotlib.rcParams['axes.unicode_minus'] = False
 
 # 添加算法模块路径
 sys.path.append(os.path.dirname(__file__))
@@ -21,8 +30,6 @@ st.set_page_config(
     page_icon="🔢",
     layout="wide"
 )
-
-matplotlib.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'Arial Unicode MS']
 
 # 初始化会话状态
 if 'test_results' not in st.session_state:
