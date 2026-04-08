@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import time
 import psutil
+import matplotlib
 import matplotlib.pyplot as plt
 from datetime import datetime
 import random
