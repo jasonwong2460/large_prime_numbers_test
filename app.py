@@ -22,6 +22,8 @@ st.set_page_config(
     layout="wide"
 )
 
+matplotlib.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'Arial Unicode MS']
+
 # 初始化会话状态
 if 'test_results' not in st.session_state:
     st.session_state.test_results = []
