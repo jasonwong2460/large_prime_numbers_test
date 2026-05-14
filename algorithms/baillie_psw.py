@@ -1,88 +1,119 @@
 import gmpy2
 
 
-def is_perfect_square(n):
-    """检查是否为完全平方数"""
-    root = gmpy2.isqrt(n)
-    return root * root == n
+def jacobi(a, n):
+    a %= n
+    result = 1
+    while a != 0:
+        while a % 2 == 0:
+            a //= 2
+            n_mod_8 = n % 8
+            if n_mod_8 in (3, 5):
+                result = -result
+        a, n = n, a
+        if a % 4 == 3 and n % 4 == 3:
+            result = -result
+        a %= n
+    if n == 1:
+        return result
+    else:
+        return 0
 
 
-def lucas_sequence(n, P, Q, k):
-    """计算卢卡斯序列"""
+def miller_rabin(n):
+    d = (n - 1) >> 1
+    s = 1
+    while d & 1 == 0:
+        d >>= 1
+        s += 1
+
+    def sprp(a):
+        a = gmpy2.powmod(a, d, n)
+        if a == 1:
+            return True
+        for r in range(s - 1):
+            if a == n - 1:
+                return True
+            a = (a * a) % n
+        return a == n - 1
+
+    return sprp(2)
+
+
+def D_chooser(n):
+    D = 5
+    j = jacobi(D, n)
+
+    while j > 0:
+        D += 2 if D > 0 else -2
+        D *= -1
+
+        if D == -15:
+            if gmpy2.is_square(n):
+                return (0, 0)
+
+        j = jacobi(D, n)
+    return (D, j)
+
+
+def div2mod(x,n):
+    if x & 1:
+       return ((x+n)>>1)%n
+    return (x>>1)%n
+
+
+def U_V_subscript(k, n, P, D):
     U = 1
     V = P
-    Qk = Q
-    b = bin(k)[3:]
+    digits = bin(k)[2:]
 
-    for bit in b:
-        U, V = (U * V) % n, (V * V - 2 * Qk) % n
-        Qk = (Qk * Qk) % n
-        if bit == '1':
-            U, V = (P * U + V) % n, (P * V + 2 * Qk) % n
-            Qk = (Qk * Q) % n
+    for digit in digits[1:]:
+        U, V = (U * V) % n, div2mod(V * V + D * U * U, n)
 
+        if digit == '1':
+            U, V = div2mod(P * U + V, n), div2mod(D * U + P * V, n)
     return U, V
 
 
-def lucas_test(n):
-    """卢卡斯素性测试"""
-    if n % 2 == 0 or n < 2:
-        return False
+def lucas_spp(n, D, P, Q):
+    assert n & 1
 
-    # 找到合适的参数 D
-    D = 5
-    while True:
-        if gmpy2.legendre(D, n) != -1:
-            break
-        D = -D + 2 if D > 0 else -D - 2
+    d = n + 1
+    s = 0
+    while (d & 1) == 0:
+        s += 1
+        d >>= 1
 
-    P = 1
-    Q = (1 - D) // 4
+    U, V = U_V_subscript(d, n, P, D)
+    if U == 0:
+        return True
 
-    # 计算卢卡斯序列
-    U, V = lucas_sequence(n, P, Q, n - gmpy2.legendre(D, n))
-    return U == 0
+    Q = gmpy2.powmod(Q, d, n)
+
+    for r in range(s):
+        if V == 0:
+            return True
+        V = (V * V - 2 * Q) % n
+        Q = gmpy2.powmod(Q, 2, n)
+
+    return False
 
 
 def baillie_psw_test(n):
-    """Baillie-PSW素性测试"""
-    if n < 2:
-        return False
-    if n == 2:
-        return True
+    if n <= 1: return False
+    if n & 1 == 0:
+        return n == 2
 
-    # 检查小因子
-    small_primes = [3, 5, 7, 11, 13, 17, 19, 23, 29]
-    for p in small_primes:
+    for p in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
+              53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101]:
         if n % p == 0:
             return n == p
 
-    # 检查完全平方数
-    if is_perfect_square(n):
+    if not miller_rabin(n):
         return False
 
-    # 米勒-拉宾测试 (基数为2)
-    if not miller_rabin_base2(n):
+    D, j = D_chooser(n)
+    if j == 0:
         return False
 
-    # 卢卡斯测试
-    return lucas_test(n)
-
-
-def miller_rabin_base2(n):
-    """基数为2的米勒-拉宾测试"""
-    d = n - 1
-    s = 0
-    while d % 2 == 0:
-        d //= 2
-        s += 1
-
-    x = gmpy2.powmod(2, d, n)
-    if x == 1 or x == n - 1:
-        return True
-
-    for _ in range(s - 1):
-        x = gmpy2.powmod(x, 2, n)
-        if x == n - 1:
-            return True
-    return False
+    return lucas_spp(n, D, 1, (1 - D) // 4)

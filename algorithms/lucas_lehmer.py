@@ -10,6 +10,8 @@ def lucas_lehmer_test(n):
 
     # 获取指数 p
     p = int(gmpy2.log2(m))
+    if p == 2:
+        return True
 
     # 卢卡斯-莱默测试
     s = 4
